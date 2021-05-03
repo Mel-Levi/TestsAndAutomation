@@ -1,22 +1,36 @@
 pipeline {
-    agent any
 
+    agent any
     stages {
-        stage('Build') {
-            steps {
-              sh 'cd my-app && mvn compile'
+
+        stage('Checkout Codebase'){
+            steps{
+                cleanWs()
+                checkout scm: [$class: 'GitSCM', branches: [[name: '*/master']],userRemoteConfigs:
+                [[credentialsId: 'github-http', url: 'https://github.com/Mel-Levi/TestsAndAutomation.git']]]
             }
         }
+
+        stage('Build'){
+            steps{
+                sh 'mkdir lib'
+                sh 'cd lib/ ; wget https://repo1.maven.org/maven2/org/junit/platform/junit-platform-console-standalone/1.7.0/junit-platform-console-standalone-1.7.0-all.jar'
+                sh 'cd src ; javac -cp "../lib/junit-platform-console-standalone-1.7.0-all.jar" CarTest.java Car.java App.java'
+            }
+        }
+
         stage('Test'){
             steps{
-            	 sh 'cd my-app && mvn test'
-          		echo 'hello from myapp automated!!'
+                sh 'cd src/ ; java -jar ../lib/junit-platform-console-standalone-1.7.0-all.jar -cp "." --select-class CarTest --reports-dir="reports"'
+                junit 'src/reports/*-jupiter.xml'
             }
         }
-        stage('Publish'){
-            steps {
-               echo 'great success'
+
+        stage('Deploy'){
+            steps{
+                sh 'cd src/ ; java App' 
             }
         }
     }
+
 }
