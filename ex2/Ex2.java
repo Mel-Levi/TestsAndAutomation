@@ -1,4 +1,4 @@
-public class Calculator {
+public class Ex2 {
   public int evaluate(String expression) {
     int sum = 0;
     for (String summand: expression.split("\\+"))
